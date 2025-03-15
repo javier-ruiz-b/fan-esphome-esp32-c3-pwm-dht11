@@ -1,0 +1,84 @@
+esphome:
+  name: bedroom-fan
+
+esp32:
+  variant: ESP32C3
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+# Enable Home Assistant API
+# api:
+mqtt:
+  id: mqtt_cli
+  broker: 10.1.1.1
+  username: bedroomfan-ber
+  password: {{MQTT_PASS}}
+
+# Enable OTA updates
+ota:
+  platform: esphome
+
+button:
+  - platform: safe_mode
+    name: "Restart (Safe Mode)"
+
+# Enable WiFi (replace with your SSID and password)
+wifi:
+  fast_connect: true
+  power_save_mode: LIGHT
+  ssid: "{{WIFI_SSID}}"
+  password: "{{WIFI_PSK}}"
+  ap:  # Fallback AP if WiFi fails
+    ssid: "{{FALLBACK_AP_SSID}}"
+    password: "{{FALLBACK_AP_PSK}}"
+
+# Logger and Web server (optional for debugging)
+logger:
+  level: INFO
+web_server:
+
+# PWM Outputs on GPIOs (adjust pins based on your setup)
+output:
+  - platform: ledc
+    pin: GPIO6
+    id: pwm_1
+    frequency: 19531Hz
+  - platform: ledc
+    pin: GPIO7
+    id: pwm_2
+    frequency: 19531Hz
+  - platform: ledc
+    pin: GPIO8
+    id: pwm_3
+    frequency: 19531Hz
+  - platform: ledc
+    pin: GPIO9
+    id: pwm_4
+    frequency: 19531Hz
+
+# Define the DHT11 sensor
+sensor:
+  - platform: dht
+    pin: GPIO0
+    model: DHT11
+    temperature:
+      name: "ESP32C3 Temperature"
+    humidity:
+      name: "ESP32C3 Humidity"
+    update_interval: 30s
+
+# Expose PWM controls in Home Assistant
+fan:
+  - platform: speed
+    output: pwm_1
+    name: "Fan 1"
+  - platform: speed
+    output: pwm_2
+    name: "Fan 2"
+  - platform: speed
+    output: pwm_3
+    name: "Fan 3"
+  - platform: speed
+    output: pwm_4
+    name: "Fan 4"
