@@ -11,8 +11,8 @@ esp32:
 # api:
 mqtt:
   id: mqtt_cli
-  broker: 10.1.1.1
-  username: bedroomfan-ber
+  broker: {{MQTT_IP}}
+  username: {{MQTT_USER}}
   password: {{MQTT_PASS}}
 
 # Enable OTA updates
@@ -67,6 +67,42 @@ sensor:
     humidity:
       name: "ESP32C3 Humidity"
     update_interval: 30s
+  - platform: pulse_counter
+    pin:
+      number: GPIO3
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_1
+    name: speed 1
+    filters:
+      - multiply: 0.5
+  - platform: pulse_counter
+    pin:
+      number: GPIO2
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_2
+    name: speed 2
+    filters:
+      - multiply: 0.5
+  - platform: pulse_counter
+    pin:
+      number: GPIO1
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_3
+    name: speed 3
+    filters:
+      - multiply: 0.5
+  - platform: pulse_counter
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_4
+    name: speed 4
+    filters:
+      - multiply: 0.5
 
 # Expose PWM controls in Home Assistant
 fan:
