@@ -60,7 +60,7 @@ output:
 # Define the DHT11 sensor
 sensor:
   - platform: dht
-    pin: GPIO0
+    pin: GPIO10
     model: DHT11
     temperature:
       name: "ESP32C3 Temperature"
