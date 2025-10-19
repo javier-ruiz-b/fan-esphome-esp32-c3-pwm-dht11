@@ -161,25 +161,25 @@ script:
           float temperature = id(radiator_temperature).state;
           if (window_is_on) {
             speed = 0.0f;
-          } else if (heating_value > 0.8f) {
-            speed = 0.85f;
-          } else if (heating_value > 0.6f) {
+          } else if (heating_value > 80) {
+            speed = 0.8f;
+          } else if (heating_value > 60) {
             speed = 0.7f;
-          } else if (heating_value > 0.3f) {
+          } else if (heating_value > 30) {
             speed = 0.6f;
-          } else if (heating_value > 0.15f) {
+          } else if (heating_value > 15) {
             speed = 0.5f;
           }
 
           if (temperature > 37.0f) {
-            speed = max(speed, 0.95f);
-          } else if (temperature > 33.0f) {
+            speed = max(speed, 0.9f);
+          } else if (temperature > 30.0f) {
             speed = max(speed, 0.8f);
-          } else if (temperature > 31.0f) {
-            speed = max(speed, 0.7f);
           } else if (temperature > 28.0f) {
-            speed = max(speed, 0.4f);
+            speed = max(speed, 0.7f);
           } else if (temperature > 26.0f) {
+            speed = max(speed, 0.4f);
+          } else if (temperature > 24.0f) {
             speed = max(speed, 0.3f);
           }
 
