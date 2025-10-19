@@ -9,11 +9,11 @@ esp32:
 
 # Enable Home Assistant API
 # api:
-# mqtt:
-#   id: mqtt_cli
-#   broker: {{MQTT_IP}}
-#   username: {{MQTT_USER}}
-#   password: {{MQTT_PASS}}
+mqtt:
+  id: mqtt_cli
+  broker: {{MQTT_IP}}
+  username: {{MQTT_USER}}
+  password: {{MQTT_PASS}}
 
 # Enable OTA updates
 ota:
@@ -25,8 +25,7 @@ button:
 
 # # Enable WiFi (replace with your SSID and password)
 wifi:
-#  fast_connect: true
-#  power_save_mode: LIGHT
+  power_save_mode: LIGHT
   output_power: 15db
   ssid: "{{WIFI_SSID}}"
   password: "{{WIFI_PSK}}"
@@ -64,19 +63,23 @@ sensor:
     pin: GPIO0
     model: DHT11
     temperature:
-      name: "ESP32C3 Temperature"
+      name: "Radiator Temperature"
     humidity:
-      name: "ESP32C3 Humidity"
+      name: "Radiator Humidity"
     update_interval: 30s
-  - platform: pulse_counter
-    pin:
-      number: GPIO5
-      mode: INPUT_PULLUP
-    unit_of_measurement: 'RPM'
-    id: speed_1
-    name: speed 1
-    filters:
-      - multiply: 0.5
+
+# not working
+  # - platform: pulse_counter 
+  #   pin:
+  #     number: GPIO5
+  #     mode: INPUT_PULLUP
+  #   unit_of_measurement: 'RPM'
+  #   id: speed_1
+  #   name: speed 1
+  #   update_interval: 5s
+  #   filters:
+  #     - multiply: 0.5
+
   - platform: pulse_counter
     pin:
       number: GPIO7
@@ -84,8 +87,10 @@ sensor:
     unit_of_measurement: 'RPM'
     id: speed_2
     name: speed 2
+    update_interval: 5s
     filters:
       - multiply: 0.5
+
   - platform: pulse_counter
     pin:
       number: GPIO9
@@ -93,8 +98,10 @@ sensor:
     unit_of_measurement: 'RPM'
     id: speed_3
     name: speed 3
+    update_interval: 5s
     filters:
       - multiply: 0.5
+      
   - platform: pulse_counter
     pin:
       number: GPIO20
@@ -102,10 +109,21 @@ sensor:
     unit_of_measurement: 'RPM'
     id: speed_4
     name: speed 4
+    update_interval: 5s
     filters:
       - multiply: 0.5
 
-# Expose PWM controls in Home Assistant
+  - platform: mqtt_subscribe
+    name: "Tado Heating"
+    topic: "homeassistant/sensor/schlafzimmer_heating/state"
+    id: schlafzimmer_heating
+
+  - platform: mqtt_subscribe
+    name: "Tado Window Open"
+    topic: "homeassistant/binary_sensor/schlafzimmer_window/state"
+    id: schlafzimmer_window
+
+# Expose PWM controls
 fan:
   - platform: speed
     output: pwm_1

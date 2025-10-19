@@ -59,3 +59,7 @@ MQTT_PASS=...
 
 Now run `create-yaml.sh` in order to create the final esp32c3_pwm.yaml. 
 You may run `esphome run esp32c3_pwm.yaml` to flash the ESP32 with this configuration. 
+
+## Connection to home assistant
+
+Follow this wizard: https://my.home-assistant.io/redirect/integration/?domain=esphome
