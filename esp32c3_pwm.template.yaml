@@ -9,11 +9,11 @@ esp32:
 
 # Enable Home Assistant API
 # api:
-mqtt:
-  id: mqtt_cli
-  broker: {{MQTT_IP}}
-  username: {{MQTT_USER}}
-  password: {{MQTT_PASS}}
+# mqtt:
+#   id: mqtt_cli
+#   broker: {{MQTT_IP}}
+#   username: {{MQTT_USER}}
+#   password: {{MQTT_PASS}}
 
 # Enable OTA updates
 ota:
@@ -23,10 +23,11 @@ button:
   - platform: safe_mode
     name: "Restart (Safe Mode)"
 
-# Enable WiFi (replace with your SSID and password)
+# # Enable WiFi (replace with your SSID and password)
 wifi:
-  fast_connect: true
-  power_save_mode: LIGHT
+#  fast_connect: true
+#  power_save_mode: LIGHT
+  output_power: 15db
   ssid: "{{WIFI_SSID}}"
   password: "{{WIFI_PSK}}"
   ap:  # Fallback AP if WiFi fails
@@ -45,22 +46,22 @@ output:
     id: pwm_1
     frequency: 19531Hz
   - platform: ledc
-    pin: GPIO7
+    pin: GPIO8
     id: pwm_2
     frequency: 19531Hz
   - platform: ledc
-    pin: GPIO8
+    pin: GPIO10
     id: pwm_3
     frequency: 19531Hz
   - platform: ledc
-    pin: GPIO9
+    pin: GPIO21
     id: pwm_4
     frequency: 19531Hz
 
 # Define the DHT11 sensor
 sensor:
   - platform: dht
-    pin: GPIO10
+    pin: GPIO0
     model: DHT11
     temperature:
       name: "ESP32C3 Temperature"
@@ -69,7 +70,7 @@ sensor:
     update_interval: 30s
   - platform: pulse_counter
     pin:
-      number: GPIO3
+      number: GPIO5
       mode: INPUT_PULLUP
     unit_of_measurement: 'RPM'
     id: speed_1
@@ -78,7 +79,7 @@ sensor:
       - multiply: 0.5
   - platform: pulse_counter
     pin:
-      number: GPIO2
+      number: GPIO7
       mode: INPUT_PULLUP
     unit_of_measurement: 'RPM'
     id: speed_2
@@ -87,7 +88,7 @@ sensor:
       - multiply: 0.5
   - platform: pulse_counter
     pin:
-      number: GPIO1
+      number: GPIO9
       mode: INPUT_PULLUP
     unit_of_measurement: 'RPM'
     id: speed_3
@@ -96,7 +97,7 @@ sensor:
       - multiply: 0.5
   - platform: pulse_counter
     pin:
-      number: GPIO0
+      number: GPIO20
       mode: INPUT_PULLUP
     unit_of_measurement: 'RPM'
     id: speed_4
