@@ -60,13 +60,19 @@ output:
 # Define the DHT11 sensor
 sensor:
   - platform: dht
+    id: radiator_dht11
     pin: GPIO0
     model: DHT11
     temperature:
       name: "Radiator Temperature"
+      id: radiator_temperature
+      on_value:
+        then:
+          - script.execute: update_fan_speed
     humidity:
       name: "Radiator Humidity"
-    update_interval: 30s
+      id: radiator_humidity
+    update_interval: 15s
 
 # not working
   # - platform: pulse_counter 
@@ -116,12 +122,18 @@ sensor:
   - platform: mqtt_subscribe
     name: "Tado Heating"
     topic: "homeassistant/sensor/schlafzimmer_heating/state"
-    id: schlafzimmer_heating
+    id: heating
+    on_value:
+      then:
+        - script.execute: update_fan_speed
 
   - platform: mqtt_subscribe
     name: "Tado Window Open"
     topic: "homeassistant/binary_sensor/schlafzimmer_window/state"
-    id: schlafzimmer_window
+    id: window
+    on_value:
+      then:
+        - script.execute: update_fan_speed
 
 # Expose PWM controls
 fan:
@@ -137,3 +149,46 @@ fan:
   - platform: speed
     output: pwm_4
     name: "Fan 4"
+
+script:
+  - id: update_fan_speed
+    then:
+      - lambda: |- 
+          float speed = 0;
+          
+          bool window_is_on = id(window).state > 0.5f;
+          float heating_value = id(heating).state;
+          float temperature = id(radiator_temperature).state;
+          if (window_is_on) {
+            speed = 0.0f;
+          } else if (heating_value > 0.8f) {
+            speed = 0.85f;
+          } else if (heating_value > 0.6f) {
+            speed = 0.7f;
+          } else if (heating_value > 0.3f) {
+            speed = 0.6f;
+          } else if (heating_value > 0.15f) {
+            speed = 0.5f;
+          }
+
+          if (temperature > 37.0f) {
+            speed = max(speed, 0.95f);
+          } else if (temperature > 33.0f) {
+            speed = max(speed, 0.8f);
+          } else if (temperature > 31.0f) {
+            speed = max(speed, 0.7f);
+          } else if (temperature > 28.0f) {
+            speed = max(speed, 0.4f);
+          } else if (temperature > 26.0f) {
+            speed = max(speed, 0.3f);
+          }
+
+          //log all values
+          ESP_LOGI("update_fan_speed", "Window: %.2f, Heating: %.2f, Temp: %.2f, Speed: %.2f", window_is_on ? 1.0f : 0.0f, heating_value, temperature, speed);
+
+
+          // apply to all 4 pwm outputs sequentially
+          id(pwm_1).set_level(speed);
+          id(pwm_2).set_level(speed);
+          id(pwm_3).set_level(speed);
+          id(pwm_4).set_level(speed);
