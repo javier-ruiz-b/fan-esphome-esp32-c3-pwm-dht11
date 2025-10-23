@@ -164,11 +164,11 @@ script:
           if (window_is_on) {
             speed = 0.0f;
           } else {
-            // Linear interpolation for heating value between 10% (0.25f) and 100% (0.8f)
-            speed = utils::linear_interpolation(heating_value, 10.0f, 0.3f, 100.0f, 0.8f);
+            // Set fan speed depending on thermostat heating value
+            speed = utils::linear_interpolation(heating_value, 10.0f, 0.35f, 100.0f, 0.8f);
 
-            // Linear interpolation for temperature between 23.5°C (0.25f) and 28.0°C (1.0f)
-            float temp_speed = utils::linear_interpolation(temperature, 23.5f, 0.3f, 28.0f, 1.0f);
+            // Set fan speed depending on actual radiator temperature
+            float temp_speed = utils::linear_interpolation(temperature, 23.5f, 0.35f, 28.0f, 1.0f);
             
             // Use max to ensure we don't reduce speed from heating value
             speed = max(speed, temp_speed);
