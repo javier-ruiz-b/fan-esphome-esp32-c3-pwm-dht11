@@ -161,30 +161,33 @@ script:
           float temperature = id(radiator_temperature).state;
           if (window_is_on) {
             speed = 0.0f;
-          } else if (heating_value > 80) {
-            speed = 0.8f;
-          } else if (heating_value > 60) {
-            speed = 0.7f;
-          } else if (heating_value > 30) {
-            speed = 0.6f;
-          } else if (heating_value > 15) {
-            speed = 0.5f;
-          }
+          } else {
+            if (heating_value > 80) {
+              speed = 0.8f;
+            } else if (heating_value > 60) {
+              speed = 0.7f;
+            } else if (heating_value > 30) {
+              speed = 0.6f;
+            } else if (heating_value > 15) {
+              speed = 0.5f;
+            }
 
-          if (temperature > 37.0f) {
-            speed = max(speed, 0.9f);
-          } else if (temperature > 30.0f) {
-            speed = max(speed, 0.8f);
-          } else if (temperature > 28.0f) {
-            speed = max(speed, 0.7f);
-          } else if (temperature > 26.0f) {
-            speed = max(speed, 0.4f);
-          } else if (temperature > 24.0f) {
-            speed = max(speed, 0.3f);
+            if (temperature > 37.0f) {
+              speed = max(speed, 0.9f);
+            } else if (temperature > 30.0f) {
+              speed = max(speed, 0.8f);
+            } else if (temperature > 28.0f) {
+              speed = max(speed, 0.7f);
+            } else if (temperature > 26.0f) {
+              speed = max(speed, 0.4f);
+            } else if (temperature > 24.0f) {
+              speed = max(speed, 0.3f);
+            }
           }
-
+          
           //log all values
-          ESP_LOGI("update_fan_speed", "Window: %.2f, Heating: %.2f, Temp: %.2f, Speed: %.2f", window_is_on ? 1.0f : 0.0f, heating_value, temperature, speed);
+          auto window_str = window_is_on ? "Window open" : "";
+          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Temp %.1fºC, Speed %3.0f%%, %s", heating_value, temperature, 100*speed, window_str);
 
 
           // apply to all 4 pwm outputs sequentially
