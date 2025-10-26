@@ -156,27 +156,35 @@ script:
   - id: update_fan_speed
     then:
       - lambda: |- 
-          float speed = 0;
+          float speed = 0.0f;
           
           bool window_is_on = id(window).state > 0.5f;
           float heating_value = id(heating).state;
           float temperature = id(radiator_temperature).state;
-          if (window_is_on) {
-            speed = 0.0f;
-          } else {
+          if (!window_is_on) {
             // Set fan speed depending on thermostat heating value
-            speed = utils::linear_interpolation(heating_value, 10.0f, 0.35f, 100.0f, 0.8f);
+            float min_heating = 10.0f;
+            float max_heating = 100.0f;
+            float min_heating_speed = 0.35f;
+            float max_heating_speed = 0.90f;
+            if (heating_value >= min_heating) {
+              speed = utils::linear_interpolation(heating_value, min_heating, min_heating_speed, max_heating, max_heating_speed);
+            }
 
             // Set fan speed depending on actual radiator temperature
-            float temp_speed = utils::linear_interpolation(temperature, 23.5f, 0.35f, 28.0f, 1.0f);
-            
-            // Use max to ensure we don't reduce speed from heating value
-            speed = max(speed, temp_speed);
+            float min_radiator_temp = 23.0f;
+            float max_radiator_temp = 26.5f;
+            float min_temp_speed = 0.35f;
+            float max_temp_speed = 1.0f;
+            if (temperature >= min_radiator_temp) {
+              float temp_speed = utils::linear_interpolation(temperature, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
+              speed = max(speed, temp_speed); // Use max to ensure we don't reduce speed from heating value
+            }
           }
           
           //log all values
-          auto window_str = window_is_on ? "Window open" : "";
-          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Temp %.1fºC, Speed %3.0f%%, %s", heating_value, temperature, 100*speed, window_str);
+          auto window_str = window_is_on ? " Window open" : "";
+          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Temp %.1fºC, Speed %3.0f%% %s", heating_value, temperature, 100*speed, window_str);
 
           // apply to all 4 pwm outputs sequentially
           id(pwm_1).set_level(speed);
