@@ -165,16 +165,16 @@ script:
             // Set fan speed depending on thermostat heating value
             float min_heating = 10.0f;
             float max_heating = 100.0f;
-            float min_heating_speed = 0.35f;
+            float min_heating_speed = 0.30f;
             float max_heating_speed = 0.90f;
             if (heating_value >= min_heating) {
               speed = utils::linear_interpolation(heating_value, min_heating, min_heating_speed, max_heating, max_heating_speed);
             }
 
             // Set fan speed depending on actual radiator temperature
-            float min_radiator_temp = 23.0f;
+            float min_radiator_temp = 22.5f;
             float max_radiator_temp = 26.5f;
-            float min_temp_speed = 0.35f;
+            float min_temp_speed = 0.15f;
             float max_temp_speed = 1.0f;
             if (temperature >= min_radiator_temp) {
               float temp_speed = utils::linear_interpolation(temperature, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
