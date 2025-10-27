@@ -158,10 +158,10 @@ script:
       - lambda: |- 
           float speed = 0.0f;
           
-          bool window_is_on = id(window).state > 0.5f;
+          bool window_is_open = id(window).state > 0.5f;
           float heating_value = id(heating).state;
           float temperature = id(radiator_temperature).state;
-          if (!window_is_on) {
+          if (!window_is_open) {
             // Set fan speed depending on thermostat heating value
             float min_heating = 10.0f;
             float max_heating = 100.0f;
@@ -183,7 +183,7 @@ script:
           }
           
           //log all values
-          auto window_str = window_is_on ? " Window open" : "";
+          auto window_str = window_is_open ? " Window open" : "";
           ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Temp %.1fºC, Speed %3.0f%% %s", heating_value, temperature, 100*speed, window_str);
 
           // apply to all 4 pwm outputs sequentially
