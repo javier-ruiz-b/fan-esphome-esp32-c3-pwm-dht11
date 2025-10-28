@@ -173,7 +173,7 @@ script:
 
             // Set fan speed depending on actual radiator temperature
             float min_radiator_temp = 22.5f;
-            float max_radiator_temp = 26.5f;
+            float max_radiator_temp = 27.5f;
             float min_temp_speed = 0.15f;
             float max_temp_speed = 1.0f;
             if (temperature >= min_radiator_temp) {
