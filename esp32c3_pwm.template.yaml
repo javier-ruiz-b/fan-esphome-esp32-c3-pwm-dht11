@@ -10,12 +10,15 @@ esp32:
     type: esp-idf
 
 # Enable Home Assistant API
-# api:
-mqtt:
-  id: mqtt_cli
-  broker: {{MQTT_IP}}
-  username: {{MQTT_USER}}
-  password: {{MQTT_PASS}}
+api:
+  encryption:
+    key: "{{API_KEY}}="
+
+# mqtt:
+#   id: mqtt_cli
+#   broker: {{MQTT_IP}}
+#   username: {{MQTT_USER}}
+#   password: {{MQTT_PASS}}
 
 # Enable OTA updates
 ota:
@@ -76,6 +79,35 @@ sensor:
       id: radiator_humidity
     update_interval: 15s
 
+  - platform: homeassistant
+    name: "Heating Value"
+    entity_id: sensor.schlafzimmer_heating
+    id: heating
+    internal: false
+    on_value:
+      then:
+        - script.execute: update_fan_speed
+    
+  - platform: homeassistant
+    name: "Window Open"
+    entity_id: binary_sensor.schlafzimmer_window
+    id: window
+    internal: false
+    on_value:
+      then:
+        - script.execute: update_fan_speed
+    
+  - platform: homeassistant
+    name: "Room Temperature"
+    entity_id: sensor.schlafzimmer_temperature
+    id: room_temperature
+    internal: false
+    on_value:
+      then:
+        - script.execute: update_fan_speed
+
+    
+
 # not working
   # - platform: pulse_counter 
   #   pin:
@@ -121,21 +153,21 @@ sensor:
     filters:
       - multiply: 0.5
 
-  - platform: mqtt_subscribe
-    name: "Tado Heating"
-    topic: "homeassistant/sensor/schlafzimmer_heating/state"
-    id: heating
-    on_value:
-      then:
-        - script.execute: update_fan_speed
+  # - platform: mqtt_subscribe
+  #   name: "Tado Heating"
+  #   topic: "homeassistant/sensor/schlafzimmer_heating/state"
+  #   id: heating
+  #   on_value:
+  #     then:
+  #       - script.execute: update_fan_speed
 
-  - platform: mqtt_subscribe
-    name: "Tado Window Open"
-    topic: "homeassistant/binary_sensor/schlafzimmer_window/state"
-    id: window
-    on_value:
-      then:
-        - script.execute: update_fan_speed
+  # - platform: mqtt_subscribe
+  #   name: "Tado Window Open"
+  #   topic: "homeassistant/binary_sensor/schlafzimmer_window/state"
+  #   id: window
+  #   on_value:
+  #     then:
+  #       - script.execute: update_fan_speed
 
 # Expose PWM controls
 fan:
@@ -160,7 +192,8 @@ script:
           
           bool window_is_open = id(window).state > 0.5f;
           float heating_value = id(heating).state;
-          float temperature = id(radiator_temperature).state;
+          float radiator_temp = id(radiator_temperature).state;
+          float room_temp = id(room_temperature).state;
           if (!window_is_open) {
             // Set fan speed depending on thermostat heating value
             float min_heating = 10.0f;
@@ -176,15 +209,15 @@ script:
             float max_radiator_temp = 27.5f;
             float min_temp_speed = 0.15f;
             float max_temp_speed = 1.0f;
-            if (temperature >= min_radiator_temp) {
-              float temp_speed = utils::linear_interpolation(temperature, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
+            if (radiator_temp >= min_radiator_temp) {
+              float temp_speed = utils::linear_interpolation(radiator_temp, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
               speed = max(speed, temp_speed); // Use max to ensure we don't reduce speed from heating value
             }
           }
           
           //log all values
           auto window_str = window_is_open ? " Window open" : "";
-          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Temp %.1fºC, Speed %3.0f%% %s", heating_value, temperature, 100*speed, window_str);
+          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Radiator %.1fºC, Room %.1fºC, Speed %3.0f%% %s", heating_value, radiator_temp, room_temp, 100*speed, window_str);
 
           // apply to all 4 pwm outputs sequentially
           id(pwm_1).set_level(speed);
