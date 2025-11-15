@@ -18,11 +18,7 @@ api:
 ota:
   platform: esphome
 
-button:
-  - platform: safe_mode
-    name: "Restart (Safe Mode)"
-
-# # Enable WiFi (replace with your SSID and password)
+# Enable WiFi (replace with your SSID and password)
 wifi:
   power_save_mode: LIGHT
   output_power: 15db
@@ -77,15 +73,6 @@ sensor:
     name: "Heating Value"
     entity_id: sensor.schlafzimmer_heating
     id: heating
-    internal: false
-    on_value:
-      then:
-        - script.execute: update_fan_speed
-    
-  - platform: homeassistant
-    name: "Window Open"
-    entity_id: binary_sensor.schlafzimmer_window
-    id: window
     internal: false
     on_value:
       then:
@@ -163,6 +150,16 @@ sensor:
   #     then:
   #       - script.execute: update_fan_speed
 
+binary_sensor:    
+  - platform: homeassistant
+    name: "Window Open"
+    entity_id: binary_sensor.schlafzimmer_window
+    id: window
+    internal: false
+    on_state:
+      then:
+        - script.execute: update_fan_speed
+
 # Expose PWM controls
 fan:
   - platform: speed
@@ -184,7 +181,7 @@ script:
       - lambda: |- 
           float speed = 0.0f;
           
-          bool window_is_open = id(window).state > 0.5f;
+          bool window_is_open = id(window).state;
           float heating_value = id(heating).state;
           float radiator_temp = id(radiator_temperature).state;
           float room_temp = id(room_temperature).state;
@@ -200,7 +197,7 @@ script:
 
             // Set fan speed depending on actual radiator temperature
             float min_radiator_temp = 22.5f;
-            float max_radiator_temp = 27.5f;
+            float max_radiator_temp = 28.0f;
             float min_temp_speed = 0.15f;
             float max_temp_speed = 1.0f;
             if (radiator_temp >= min_radiator_temp) {
