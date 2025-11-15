@@ -14,12 +14,6 @@ api:
   encryption:
     key: "{{API_KEY}}="
 
-# mqtt:
-#   id: mqtt_cli
-#   broker: {{MQTT_IP}}
-#   username: {{MQTT_USER}}
-#   password: {{MQTT_PASS}}
-
 # Enable OTA updates
 ota:
   platform: esphome

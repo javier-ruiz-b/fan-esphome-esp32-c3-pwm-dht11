@@ -1,0 +1,210 @@
+esphome:
+  name: livingroom-fan
+  includes:
+    - interpolation.h
+
+esp32:
+  variant: ESP32C3
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "{{API_KEY}}="
+
+# Enable OTA updates
+ota:
+  platform: esphome
+
+button:
+  - platform: safe_mode
+    name: "Restart (Safe Mode)"
+
+# # Enable WiFi (replace with your SSID and password)
+wifi:
+  power_save_mode: LIGHT
+  output_power: 15db
+  ssid: "{{WIFI_SSID}}"
+  password: "{{WIFI_PSK}}"
+  ap:  # Fallback AP if WiFi fails
+    ssid: "{{FALLBACK_AP_SSID}}"
+    password: "{{FALLBACK_AP_PSK}}"
+
+# Logger and Web server (optional for debugging)
+logger:
+  level: INFO
+web_server:
+
+# PWM Outputs on GPIOs (adjust pins based on your setup)
+output:
+  - platform: ledc
+    pin: GPIO0
+    id: pwm_left
+    frequency: 19531Hz
+  - platform: ledc
+    pin: GPIO1
+    id: pwm_right
+    frequency: 19531Hz
+    
+# Define the DHT11 sensor
+sensor:
+  - platform: dht
+    id: radiator_dht11
+    pin: GPIO3
+    model: DHT11
+    temperature:
+      name: "Radiator Temperature"
+      id: radiator_temperature
+      on_value:
+        then:
+          - script.execute: update_fan_speed
+    humidity:
+      name: "Radiator Humidity"
+      id: radiator_humidity
+    update_interval: 15s
+
+  - platform: homeassistant
+    entity_id: sensor.wohnzimmer_heating
+    name: "Heating Value"
+    id: heating
+    internal: false
+    on_value:
+      then:
+        - script.execute: update_fan_speed
+    
+  - platform: homeassistant
+    entity_id: binary_sensor.wohnzimmer_window
+    name: "Window Open"
+    id: window
+    internal: false
+    on_value:
+      then:
+        - script.execute: update_fan_speed
+    
+  - platform: homeassistant
+    entity_id: sensor.wohnzimmer_temperature
+    name: "Room Temperature"
+    id: room_temperature
+    internal: false
+    on_value:
+      then:
+        - script.execute: update_fan_speed
+
+    
+
+# not working
+  - platform: pulse_counter 
+    pin:
+      number: GPIO5
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_1
+    name: speed 1
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
+
+  - platform: pulse_counter
+    pin:
+      number: GPIO6
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_2
+    name: speed 2
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
+
+  - platform: pulse_counter
+    pin:
+      number: GPIO7
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_3
+    name: speed 3
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
+      
+  - platform: pulse_counter
+    pin:
+      number: GPIO11
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_4
+    name: speed 4
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
+
+  - platform: pulse_counter
+    pin:
+      number: GPIO20
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_5
+    name: speed 5
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
+
+  - platform: pulse_counter
+    pin:
+      number: GPIO21
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_6
+    name: speed 6
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
+
+# Expose PWM controls
+fan:
+  - platform: speed
+    output: pwm_left
+    name: "Fan left"
+  - platform: speed
+    output: pwm_right
+    name: "Fan right"
+
+script:
+  - id: update_fan_speed
+    then:
+      - lambda: |- 
+          float speed = 0.0f;
+          
+          bool window_is_open = id(window).state;
+          float heating_value = id(heating).state;
+          float radiator_temp = id(radiator_temperature).state;
+          float room_temp = id(room_temperature).state;
+          if (!window_is_open) {
+            // Set fan speed depending on thermostat heating value
+            float min_heating = 10.0f;
+            float max_heating = 100.0f;
+            float min_heating_speed = 0.30f;
+            float max_heating_speed = 0.90f;
+            if (heating_value >= min_heating) {
+              speed = utils::linear_interpolation(heating_value, min_heating, min_heating_speed, max_heating, max_heating_speed);
+            }
+
+            // Set fan speed depending on actual radiator temperature
+            float min_radiator_temp = 22.5f;
+            float max_radiator_temp = 27.5f;
+            float min_temp_speed = 0.15f;
+            float max_temp_speed = 1.0f;
+            if (radiator_temp >= min_radiator_temp) {
+              float temp_speed = utils::linear_interpolation(radiator_temp, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
+              speed = max(speed, temp_speed); // Use max to ensure we don't reduce speed from heating value
+            }
+          }
+          
+          //log all values
+          auto window_str = window_is_open ? " Window open" : "";
+          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Radiator %.1fºC, Room %.1fºC, Speed %3.0f%% %s", heating_value, radiator_temp, room_temp, 100*speed, window_str);
+
+          // apply to all 2 pwm outputs sequentially
+          id(pwm_left).set_level(speed);
+          id(pwm_right).set_level(speed);

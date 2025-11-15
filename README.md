@@ -27,7 +27,7 @@ Required hardware (Adapt to your needs):
 ## Circuit diagram
 
 Ignore the ESP on the diagram, as it does not match the ESP32c3.
-Use the pins specified in the esp32c3_pwm.yaml.template.
+Use the pins specified in the esp32c3_bedroom_pwm.yaml.template.
 
 ![ESP32C3 Fan and DHT11 Temp Sensor Circuit](esp32c3_fan_temp_circuit.jpg)
 
@@ -50,15 +50,12 @@ WIFI_SSID=...
 WIFI_PSK=...
 FALLBACK_AP_SSID=...
 FALLBACK_AP_PSK=...
-MQTT_IP=...
-MQTT_USER=...
-MQTT_PASS=...
+API_KEY=...
 ```
 
 ### Flash
 
-Now run `create-yaml.sh` in order to create the final esp32c3_pwm.yaml. 
-You may run `esphome run esp32c3_pwm.yaml` to flash the ESP32 with this configuration. 
+Now run `flash_bedroom.sh` to flash the ESP32 with this configuration. 
 
 ## Connection to home assistant
 
