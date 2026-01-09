@@ -1,5 +1,5 @@
 #!/bin/bash
-[ -n "$VIRTUAL_ENV" ] || . .venv/Scripts/activate
+[ -n "$VIRTUAL_ENV" ] || . .venv/Scripts/activate || . .venv/bin/activate
 set -euo pipefail
 
 output_file="esp32c3_livingroom.yaml"
