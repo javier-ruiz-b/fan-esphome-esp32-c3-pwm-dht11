@@ -36,19 +36,19 @@ web_server:
 # PWM Outputs on GPIOs (adjust pins based on your setup)
 output:
   - platform: ledc
-    pin: GPIO6
+    pin: GPIO20
     id: pwm_1
     frequency: 19531Hz
   - platform: ledc
-    pin: GPIO8
+    pin: GPIO18
     id: pwm_2
     frequency: 19531Hz
   - platform: ledc
-    pin: GPIO10
+    pin: GPIO9
     id: pwm_3
     frequency: 19531Hz
   - platform: ledc
-    pin: GPIO21
+    pin: GPIO7
     id: pwm_4
     frequency: 19531Hz
 
@@ -56,7 +56,7 @@ output:
 sensor:
   - platform: dht
     id: radiator_dht11
-    pin: GPIO0
+    pin: GPIO4
     model: DHT11
     temperature:
       name: "Radiator Temperature"
@@ -90,20 +90,20 @@ sensor:
     
 
 # not working
-  # - platform: pulse_counter 
-  #   pin:
-  #     number: GPIO5
-  #     mode: INPUT_PULLUP
-  #   unit_of_measurement: 'RPM'
-  #   id: speed_1
-  #   name: speed 1
-  #   update_interval: 5s
-  #   filters:
-  #     - multiply: 0.5
+  - platform: pulse_counter 
+    pin:
+      number: GPIO21
+      mode: INPUT_PULLUP
+    unit_of_measurement: 'RPM'
+    id: speed_1
+    name: speed 1
+    update_interval: 5s
+    filters:
+      - multiply: 0.5
 
   - platform: pulse_counter
     pin:
-      number: GPIO7
+      number: GPIO19
       mode: INPUT_PULLUP
     unit_of_measurement: 'RPM'
     id: speed_2
@@ -112,20 +112,21 @@ sensor:
     filters:
       - multiply: 0.5
 
-  - platform: pulse_counter
-    pin:
-      number: GPIO9
-      mode: INPUT_PULLUP
-    unit_of_measurement: 'RPM'
-    id: speed_3
-    name: speed 3
-    update_interval: 5s
-    filters:
-      - multiply: 0.5
+  # not working pin
+  # - platform: pulse_counter
+  #   pin:
+  #     number: GPIO10
+  #     mode: INPUT_PULLUP
+  #   unit_of_measurement: 'RPM'
+  #   id: speed_3
+  #   name: speed 3
+  #   update_interval: 5s
+  #   filters:
+  #     - multiply: 0.5
       
   - platform: pulse_counter
     pin:
-      number: GPIO20
+      number: GPIO8
       mode: INPUT_PULLUP
     unit_of_measurement: 'RPM'
     id: speed_4
@@ -196,9 +197,9 @@ script:
             }
 
             // Set fan speed depending on actual radiator temperature
-            float min_radiator_temp = 22.5f;
-            float max_radiator_temp = 27.5f;
-            float min_temp_speed = 0.15f;
+            float min_radiator_temp = 23.5f;
+            float max_radiator_temp = 48.0f;
+            float min_temp_speed = 0.10f;
             float max_temp_speed = 1.0f;
             if (radiator_temp >= min_radiator_temp) {
               float temp_speed = utils::linear_interpolation(radiator_temp, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
