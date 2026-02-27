@@ -71,7 +71,7 @@ sensor:
 
   - platform: homeassistant
     name: "Heating Value"
-    entity_id: sensor.schlafzimmer_heating
+    entity_id: sensor.schlafzimmer_heating_power
     id: heating
     internal: false
     on_value:

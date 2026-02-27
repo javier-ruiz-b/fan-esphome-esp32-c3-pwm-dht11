@@ -62,7 +62,7 @@ sensor:
     update_interval: 15s
 
   - platform: homeassistant
-    entity_id: sensor.wohnzimmer_heating
+    entity_id: sensor.wohnzimmer_heating_power
     name: "Heating Value"
     id: heating
     internal: false
