@@ -67,20 +67,11 @@ sensor:
     humidity:
       name: "Radiator Humidity"
       id: radiator_humidity
-    update_interval: 15s
-
-  - platform: homeassistant
-    name: "Heating Value"
-    entity_id: sensor.schlafzimmer_heating_power
-    id: heating
-    internal: false
-    on_value:
-      then:
-        - script.execute: update_fan_speed
+    update_interval: 10s
     
   - platform: homeassistant
     name: "Room Temperature"
-    entity_id: sensor.schlafzimmer_temperature
+    entity_id: sensor.sonoff_snzb_02d_temperature
     id: room_temperature
     internal: false
     on_value:
@@ -135,32 +126,6 @@ sensor:
     filters:
       - multiply: 0.5
 
-  # - platform: mqtt_subscribe
-  #   name: "Tado Heating"
-  #   topic: "homeassistant/sensor/schlafzimmer_heating/state"
-  #   id: heating
-  #   on_value:
-  #     then:
-  #       - script.execute: update_fan_speed
-
-  # - platform: mqtt_subscribe
-  #   name: "Tado Window Open"
-  #   topic: "homeassistant/binary_sensor/schlafzimmer_window/state"
-  #   id: window
-  #   on_value:
-  #     then:
-  #       - script.execute: update_fan_speed
-
-binary_sensor:    
-  - platform: homeassistant
-    name: "Window Open"
-    entity_id: binary_sensor.schlafzimmer_window
-    id: window
-    internal: false
-    on_state:
-      then:
-        - script.execute: update_fan_speed
-
 # Expose PWM controls
 fan:
   - platform: speed
@@ -181,35 +146,25 @@ script:
     then:
       - lambda: |- 
           float speed = 0.0f;
-          
-          bool window_is_open = id(window).state;
-          float heating_value = id(heating).state;
           float radiator_temp = id(radiator_temperature).state;
           float room_temp = id(room_temperature).state;
-          if (!window_is_open) {
-            // Set fan speed depending on thermostat heating value
-            float min_heating = 10.0f;
-            float max_heating = 100.0f;
-            float min_heating_speed = 0.30f;
-            float max_heating_speed = 0.75f;
-            if (heating_value >= min_heating) {
-              speed = utils::linear_interpolation(heating_value, min_heating, min_heating_speed, max_heating, max_heating_speed);
-            }
-
-            // Set fan speed depending on actual radiator temperature
-            float min_radiator_temp = 23.5f;
-            float max_radiator_temp = 44.0f;
-            float min_temp_speed = 0.10f;
-            float max_temp_speed = 1.0f;
-            if (radiator_temp >= min_radiator_temp) {
-              float temp_speed = utils::linear_interpolation(radiator_temp, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
-              speed = max(speed, temp_speed); // Use max to ensure we don't reduce speed from heating value
-            }
+          
+          // Set fan speed depending on actual radiator temperature
+          float min_radiator_temp = 22.0f;
+          float max_radiator_temp = 37.0f;
+          float min_temp_speed = 0.05f;
+          float max_temp_speed = 1.0f;
+          float min_temp_difference = 5.0f;
+          bool radiator_hot_enough = radiator_temp >= min_radiator_temp;
+          // Ignore room temp difference check if the room sensor is unavailable (NaN)
+          bool temp_diff_ok = isnan(room_temp) || (radiator_temp - room_temp) >= min_temp_difference;
+          if (radiator_hot_enough && temp_diff_ok) {
+            float temp_speed = utils::linear_interpolation(radiator_temp, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
+            speed = max(speed, temp_speed); // Use max to ensure we don't reduce speed from heating value
           }
           
           //log all values
-          auto window_str = window_is_open ? " Window open" : "";
-          ESP_LOGI("update_fan_speed", "Heat %3.0f%%, Radiator %.1fºC, Room %.1fºC, Speed %3.0f%% %s", heating_value, radiator_temp, room_temp, 100*speed, window_str);
+          ESP_LOGI("update_fan_speed", "Radiator %.1fºC, Room %.1fºC, Speed %3.0f%%", radiator_temp, room_temp, 100*speed);
 
           // apply to all 4 pwm outputs sequentially
           id(pwm_1).set_level(speed);
