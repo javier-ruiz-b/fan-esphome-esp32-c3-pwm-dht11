@@ -161,7 +161,8 @@ script:
           float max_temp_speed = 1.0f;
           float min_temp_difference = 5.0f;
           bool radiator_hot_enough = radiator_temp >= min_radiator_temp;
-          bool temp_diff_ok = (radiator_temp - room_temp) >= min_temp_difference;
+          // Ignore room temp difference check if the room sensor is unavailable (NaN)
+          bool temp_diff_ok = isnan(room_temp) || (radiator_temp - room_temp) >= min_temp_difference;
           if (radiator_hot_enough && temp_diff_ok) {
             float temp_speed = utils::linear_interpolation(radiator_temp, min_radiator_temp, min_temp_speed, max_radiator_temp, max_temp_speed);
             speed = max(speed, temp_speed); // Use max to ensure we don't reduce speed from heating value
